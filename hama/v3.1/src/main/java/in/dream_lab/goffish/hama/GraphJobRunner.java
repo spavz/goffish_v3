@@ -74,7 +74,7 @@ public final class GraphJobRunner<S extends Writable, V extends Writable, E exte
   }
   
   public static final Log LOG = LogFactory.getLog(GraphJobRunner.class);
-  
+
   private Partition<S, V, E, I, J, K> partition;
   private BSPPeer<Writable, Writable, Writable, Writable, Message<K, M>> peer;
   private HamaConfiguration conf;
@@ -83,6 +83,7 @@ public final class GraphJobRunner<S extends Writable, V extends Writable, E exte
   public static Class<? extends Writable> SUBGRAPH_ID_CLASS;
   public static Class<? extends Writable> GRAPH_MESSAGE_CLASS;
   public static Class<? extends IVertex> VERTEX_CLASS;
+  public static Class<? extends IBiVertex> BIVERTEX_CLASS;
   private static int THREAD_COUNT;
   
   //public static Class<Subgraph<?, ?, ?, ?, ?, ?, ?>> subgraphClass;
@@ -201,6 +202,8 @@ public final class GraphJobRunner<S extends Writable, V extends Writable, E exte
 
     VERTEX_CLASS = (Class<? extends IVertex>) conf.getClass(
             GraphJob.VERTEX_CLASS_ATTR, Vertex.class, IVertex.class);
+
+    BIVERTEX_CLASS = (Class<? extends IBiVertex>)  conf.getClass(GraphJob.VERTEX_CLASS_ATTR, BiVertex.class, IBiVertex.class);
 
     SUBGRAPH_ID_CLASS = (Class<? extends Writable>) conf.getClass(
             GraphJob.SUBGRAPH_ID_CLASS_ATTR, LongWritable.class, Writable.class);
