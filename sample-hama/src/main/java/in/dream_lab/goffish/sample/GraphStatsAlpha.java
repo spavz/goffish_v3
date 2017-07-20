@@ -59,6 +59,17 @@ public class GraphStatsAlpha extends
   private List<Long> _boundaryVertices = Lists.newArrayList();
   private HashSet<Long> _neighbours = Sets.newHashSet();
 
+  static {
+    InstrumentationAgent.initialize();
+  }
+
+  public static void printInstrumentationSize(final Object object)
+  {
+    System.out.println(
+            "Object of type '" + object.getClass() + "' has size of "
+                    + InstrumentationAgent.getObjectSize(object) + " bytes.");
+  }
+
   @Override
   public void compute(Iterable<IMessage<LongWritable, Text>> messages)
       throws IOException {
@@ -208,6 +219,7 @@ Inner:  for (IEdge<LongWritable, LongWritable, LongWritable> e : v.getOutEdges()
     System.out.println("Subgraph Count = " + _subgraphCount);
     System.out.println("Meta Graph Diameter = " + _metaGraphDiameter);
     ISubgraph<LongWritable, LongWritable, LongWritable, LongWritable, LongWritable, LongWritable> subgraph = getSubgraph();
+    printInstrumentationSize(getSubgraph().getLocalVertices());
     System.out.println("Subgraph " + subgraph.getSubgraphId()+" has " + _boundaryVertices.size() + " boundary vertices");
     System.out.println("Subgraph " + subgraph.getSubgraphId()+" has " + subgraph.getLocalVertexCount() +" local vertices");
     System.out.println("Subgraph " + subgraph.getSubgraphId()+" has " + (subgraph.getVertexCount() - subgraph.getLocalVertexCount()) +" remote vertices");
@@ -219,14 +231,14 @@ Inner:  for (IEdge<LongWritable, LongWritable, LongWritable> e : v.getOutEdges()
     } else {
       System.out.println("Subgraph " + subgraph.getSubgraphId() + " has no neighbours ");
     }
-    // System.out.print("\n*********Subgraph " + subgraph.getSubgraphId() + " has neighbours " + subgraph.getRemoteSubgraphsID());
-    for (IVertex<LongWritable, LongWritable, LongWritable, LongWritable> v : getSubgraph().getLocalVertices())
-      for (IEdge<LongWritable, LongWritable, LongWritable> e : ((IBiVertex<LongWritable, LongWritable, LongWritable, LongWritable>) v).getInEdges())
-        System.out.print("\n*********Vertex " + v.getVertexId() + " of " + getSubgraph().getSubgraphId()+ " has Inedge from " + ((IBiEdge) e).getSourceVertexId() + " and sink " + e.getSinkVertexId() +"\n");
-
-    for (IVertex<LongWritable, LongWritable, LongWritable, LongWritable> v : getSubgraph().getLocalVertices())
-      for (IEdge<LongWritable, LongWritable, LongWritable> e : v.getOutEdges())
-        System.out.print("\n#########Vertex " + v.getVertexId() + " of " + getSubgraph().getSubgraphId()+ " has Outedge from " + ((IBiEdge) e).getSourceVertexId() + " and sink " + e.getSinkVertexId() +"\n");
+//    // System.out.print("\n*********Subgraph " + subgraph.getSubgraphId() + " has neighbours " + subgraph.getRemoteSubgraphsID());
+//    for (IVertex<LongWritable, LongWritable, LongWritable, LongWritable> v : getSubgraph().getLocalVertices())
+//      for (IEdge<LongWritable, LongWritable, LongWritable> e : ((IBiVertex<LongWritable, LongWritable, LongWritable, LongWritable>) v).getInEdges())
+//        System.out.print("\n*********Vertex " + v.getVertexId() + " of " + getSubgraph().getSubgraphId()+ " has Inedge from " + ((IBiEdge) e).getSourceVertexId() + " and sink " + e.getSinkVertexId() +"\n");
+//
+//    for (IVertex<LongWritable, LongWritable, LongWritable, LongWritable> v : getSubgraph().getLocalVertices())
+//      for (IEdge<LongWritable, LongWritable, LongWritable> e : v.getOutEdges())
+//        System.out.print("\n#########Vertex " + v.getVertexId() + " of " + getSubgraph().getSubgraphId()+ " has Outedge from " + ((IBiEdge) e).getSourceVertexId() + " and sink " + e.getSinkVertexId() +"\n");
   }
 
 }

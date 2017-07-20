@@ -168,10 +168,31 @@ public class FullInfoSplitReaderBeta<S extends Writable, V extends Writable, E e
             LongWritable sourceID = new LongWritable(Longs.fromByteArray(i.next().copyBytes()));
 
             //populate local vertices with their REMOTE inEdges
+            if(partition.getSubgraph(subgraphID).getVertexById(sinkID) == null) {
+                throw new NullPointerException();
+            }
+                if (localinEdgeMap.get(sinkID) == null) {
+                    ArrayList<IEdge<E, LongWritable, LongWritable>> a = new ArrayList<>();
+                    a.add(new BiEdge<E, LongWritable, LongWritable>(sourceID,edgeID,sinkID));
+                    localinEdgeMap.put(sinkID,a);
+                }
+                else
+                    localinEdgeMap.get(sinkID).add(new BiEdge<E, LongWritable, LongWritable>(sourceID,edgeID,sinkID));
+
+
             ((BiVertex) partition.getSubgraph(subgraphID).getVertexById(sinkID)).addInEdge(new BiEdge<E, LongWritable, LongWritable>(sourceID,edgeID,sinkID));
 
         }
-        //messageList.clear();
+
+        //populate local vertices with their local inEdges
+        for (LongWritable v : localinEdgeMap.keySet()) {
+            BiVertex<V,E,LongWritable,LongWritable> vertex = (BiVertex<V, E, LongWritable, LongWritable>) partition.getSubgraph(vertexSubgraphMap.get(v)).getVertexById(v);
+            for(IEdge<E,LongWritable,LongWritable> e: localinEdgeMap.get(v))
+                vertex.addInEdge(e);
+            //vertex.addInEdges(localinEdgeMap.get(v));
+        }
+
+        localinEdgeMap.clear();
 
         // broadcast all subgraphs belonging to this partition
         Message<K, M> subgraphMapppingMessage = new Message<>();
