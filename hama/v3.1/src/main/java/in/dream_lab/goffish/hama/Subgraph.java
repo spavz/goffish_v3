@@ -153,4 +153,86 @@ public class Subgraph<S extends Writable, V extends Writable, E extends Writable
     }
     return edgeList;
   }
+
+  @Override
+  public long getRemoteVertexCount() {
+    return _remoteVertexMap.size();
+  }
+
+  @Override
+  public long getLocalEdgeCount() {
+    long localEdge = 0;
+    for (IVertex<V, E, I, J> vertex : _localVertexMap.values())
+      localEdge += vertex.getOutDegree();
+
+    return localEdge;
+  }
+
+  @Override
+  public long getBoundaryEdgeCount() {
+    long boundaryEdgeCount=0;
+    for (IVertex<V, E, I, J> localVertex : _localVertexMap.values()) {
+      for(IEdge<E, I, J> temp : localVertex.getOutEdges()) {
+        if(!_localVertexMap.containsKey(temp.getSinkVertexId()))
+          boundaryEdgeCount++;
+      }
+    }
+    return boundaryEdgeCount;
+  }
+
+  @Override
+  public long getBoundaryVertexCount() {
+    long boundaryVertices=0;
+    for (IVertex<V, E, I, J> localVertex : _localVertexMap.values()) {
+      for(IEdge<E, I, J> temp : localVertex.getOutEdges()) {
+        if(!_localVertexMap.containsKey(temp.getSinkVertexId())) {
+          boundaryVertices++;
+          break;
+        }
+      }
+    }
+
+    return boundaryVertices;
+  }
+
+
+  @Override
+  public Iterable<IVertex<V,E,I,J>> getBoundaryVertices() {
+    List<IVertex<V, E, I, J>> boundaryVertices = new ArrayList<>();
+    for (IVertex<V, E, I, J> localVertex : _localVertexMap.values()) {
+      for(IEdge<E, I, J> temp : localVertex.getOutEdges()) {
+        if(!_localVertexMap.containsKey(temp.getSinkVertexId())) {
+          boundaryVertices.add(localVertex);
+          break;
+        }
+      }
+    }
+    return boundaryVertices;
+  }
+
+
+  @Override
+  public Iterable<IEdge<E, I, J>> getBoundaryEdges() {
+    List<IEdge<E,I,J>> boundaryEdge = new ArrayList<>();
+    for (IVertex<V, E, I, J> localVertex : _localVertexMap.values()) {
+      for(IEdge<E, I, J> temp : localVertex.getOutEdges()) {
+        if(!_localVertexMap.containsKey(temp.getSinkVertexId()))
+          boundaryEdge.add(temp);
+      }
+    }
+    return boundaryEdge;
+  }
+
+  @Override
+  public Iterable<IEdge<E, I, J>> getLocalOutEdges() {
+    List<IEdge<E,I,J>> localEdge = new ArrayList<>();
+    for (IVertex<V, E, I, J> vertex : _localVertexMap.values()) {
+      for(IEdge<E, I, J> temp : vertex.getOutEdges()) {
+        localEdge.add(temp);
+      }
+    }
+    return localEdge;
+  }
+
+
 }

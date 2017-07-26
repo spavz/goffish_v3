@@ -52,4 +52,20 @@ public interface ISubgraph<S extends Writable, V extends Writable, E extends Wri
   void setSubgraphValue(S value);
 
   S getSubgraphValue();
+
+  long getRemoteVertexCount();
+
+  long getLocalEdgeCount();
+
+  long getBoundaryEdgeCount();
+
+  long getBoundaryVertexCount();
+
+  Iterable<IVertex<V,E,I,J>> getBoundaryVertices();
+
+  Iterable<IEdge<E,I,J>> getBoundaryEdges();
+
+  Iterable<IEdge<E,I,J>> getLocalOutEdges();
+
+
 }

@@ -93,4 +93,8 @@ public class Vertex<V extends Writable, E extends Writable, I extends Writable, 
   public boolean equals(Object o) {
     return (this.vertexID).equals(((IVertex) o).getVertexId());
   }
+
+  public long getOutDegree(){
+    return _adjList.size();
+  }
 }

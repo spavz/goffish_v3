@@ -79,6 +79,11 @@ public class RemoteVertex<V extends Writable, E extends Writable, I extends Writ
   }
 
   @Override
+  public long getOutDegree() {
+    throw new NotImplementedException("Remote Vertex does not have edges");
+  }
+
+  @Override
   public K getSubgraphId() {
     return subgraphID;
   }

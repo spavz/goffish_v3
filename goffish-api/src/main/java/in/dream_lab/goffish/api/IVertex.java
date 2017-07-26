@@ -41,4 +41,6 @@ public interface IVertex<V extends Writable, E extends Writable, I extends Writa
   void setValue(V value);
 
   IEdge<E, I, J> getOutEdge(I vertexId);
+
+  long getOutDegree();
 }
