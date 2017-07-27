@@ -130,53 +130,53 @@ public final class GraphJobRunner<S extends Writable, V extends Writable, E exte
       partition.addSubgraph(subgraph);
 
       // Logging info about subgraph
-      if (LOG.isInfoEnabled()) {
-        long localEdgeCount = 0, remoteEdgeCount = 0, boundaryVertexCount = 0, maxEdgeDegree = 0;
-        K sgid = subgraph.getSubgraphId();
-        long localVertexCount = subgraph.getLocalVertexCount();
-        long remoteVertexCount = Iterables.size(subgraph.getRemoteVertices());
-        Map<K, Long> neighborSgId = new HashMap<K, Long>();
-
-        for (IVertex<V, E, I, J> v : subgraph.getLocalVertices()) {
-          boolean isBoundary = false;
-          long edgeDegree = 0;
-          for (IEdge<E, I, J> e : v.getOutEdges()) {
-            edgeDegree++;
-            IVertex<V, E, I, J> adjVertex = subgraph.getVertexById(e.getSinkVertexId());
-            if (adjVertex.isRemote()) {
-              isBoundary = true;
-              remoteEdgeCount++;
-              K adjSgid = ((IRemoteVertex<V, E, I, J, K>)adjVertex).getSubgraphId();
-              Long remoteEdgesSg = neighborSgId.get(adjSgid);
-              if (remoteEdgesSg == null)
-                remoteEdgesSg = new Long(0);
-              neighborSgId.put(adjSgid, remoteEdgesSg + 1);
-            } else
-              localEdgeCount++;
-          }
-          if (isBoundary)
-            boundaryVertexCount++;
-          if (edgeDegree > maxEdgeDegree)
-            maxEdgeDegree = edgeDegree;
-        }
-
-        LOG.info("GOFFISH3.TOPO.SG," + sgid + "," + localVertexCount + "," + localEdgeCount + ","
-                 + remoteVertexCount + "," + remoteEdgeCount + "," + boundaryVertexCount
-                 + "," + maxEdgeDegree + "," + peer.getPeerIndex());
-
-        String adjSgidString = new String(), prefix = "";
-        for (Map.Entry<K, Long> e : neighborSgId.entrySet()) {
-          adjSgidString += prefix + e.getKey() + "," + e.getValue();
-          prefix = ",";
-        }
-        if (adjSgidString.isEmpty())
-          LOG.info("GOFFISH3.META.SG," + sgid + "," + localVertexCount);
-        else
-          LOG.info("GOFFISH3.META.SG," + sgid + "," + localVertexCount + "," + adjSgidString);
-
-        LOG.info("GOFFISH3.PERF.PART.PID," + peer.getPeerIndex() + "," +
-                 ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
-      }
+//      if (LOG.isInfoEnabled()) {
+//        long localEdgeCount = 0, remoteEdgeCount = 0, boundaryVertexCount = 0, maxEdgeDegree = 0;
+//        K sgid = subgraph.getSubgraphId();
+//        long localVertexCount = subgraph.getLocalVertexCount();
+//        long remoteVertexCount = Iterables.size(subgraph.getRemoteVertices());
+//        Map<K, Long> neighborSgId = new HashMap<K, Long>();
+//
+//        for (IVertex<V, E, I, J> v : subgraph.getLocalVertices()) {
+//          boolean isBoundary = false;
+//          long edgeDegree = 0;
+//          for (IEdge<E, I, J> e : v.getOutEdges()) {
+//            edgeDegree++;
+//            IVertex<V, E, I, J> adjVertex = subgraph.getVertexById(e.getSinkVertexId());
+//            if (adjVertex.isRemote()) {
+//              isBoundary = true;
+//              remoteEdgeCount++;
+//              K adjSgid = ((IRemoteVertex<V, E, I, J, K>)adjVertex).getSubgraphId();
+//              Long remoteEdgesSg = neighborSgId.get(adjSgid);
+//              if (remoteEdgesSg == null)
+//                remoteEdgesSg = new Long(0);
+//              neighborSgId.put(adjSgid, remoteEdgesSg + 1);
+//            } else
+//              localEdgeCount++;
+//          }
+//          if (isBoundary)
+//            boundaryVertexCount++;
+//          if (edgeDegree > maxEdgeDegree)
+//            maxEdgeDegree = edgeDegree;
+//        }
+//
+//        LOG.info("GOFFISH3.TOPO.SG," + sgid + "," + localVertexCount + "," + localEdgeCount + ","
+//                 + remoteVertexCount + "," + remoteEdgeCount + "," + boundaryVertexCount
+//                 + "," + maxEdgeDegree + "," + peer.getPeerIndex());
+//
+//        String adjSgidString = new String(), prefix = "";
+//        for (Map.Entry<K, Long> e : neighborSgId.entrySet()) {
+//          adjSgidString += prefix + e.getKey() + "," + e.getValue();
+//          prefix = ",";
+//        }
+//        if (adjSgidString.isEmpty())
+//          LOG.info("GOFFISH3.META.SG," + sgid + "," + localVertexCount);
+//        else
+//          LOG.info("GOFFISH3.META.SG," + sgid + "," + localVertexCount + "," + adjSgidString);
+//
+//        LOG.info("GOFFISH3.PERF.PART.PID," + peer.getPeerIndex() + "," +
+//                 ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+//      }
     }
 
 

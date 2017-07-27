@@ -72,6 +72,11 @@ public class VertexWithAdjacentSet<V extends Writable, E extends Writable, I ext
   }
 
   @Override
+  public long getOutDegree() {
+    return _adjSet.size();
+  }
+
+  @Override
   public V getValue() {
     return _value;
   }

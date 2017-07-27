@@ -65,7 +65,4 @@ public interface ISubgraph<S extends Writable, V extends Writable, E extends Wri
 
   Iterable<IEdge<E,I,J>> getBoundaryEdges();
 
-  Iterable<IEdge<E,I,J>> getLocalOutEdges();
-
-
 }

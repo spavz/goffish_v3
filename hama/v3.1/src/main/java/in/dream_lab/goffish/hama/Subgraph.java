@@ -15,6 +15,7 @@
  *  
  *  @author Himanshu Sharma
  *  @author Diptanshu Kakwani
+ *  @author Vishak KC
 */
 
 package in.dream_lab.goffish.hama;
@@ -33,7 +34,10 @@ public class Subgraph<S extends Writable, V extends Writable, E extends Writable
     implements ISubgraph<S, V, E, I, J, K> {
 
   K subgraphID;
-  private Map<I, IVertex<V, E, I, J>> _localVertexMap;
+  private List<IEdge<E, I, J>> _interiorEdges;
+  private List<IEdge<E, I, J>> _boundaryEdges;
+  private Map<I, IVertex<V, E, I, J>> _interiorVertexMap;
+  private Map<I, IVertex<V, E, I, J>> _boundaryVertexMap;
   private Map<I, IRemoteVertex<V, E, I, J, K>> _remoteVertexMap;
   int partitionID;
   S _value;
@@ -41,21 +45,34 @@ public class Subgraph<S extends Writable, V extends Writable, E extends Writable
   Subgraph(int partitionID, K subgraphID) {
     this.partitionID = partitionID;
     this.subgraphID = subgraphID;
-    _localVertexMap = new HashMap<I, IVertex<V, E, I, J>>();
+    _interiorVertexMap = new HashMap<I, IVertex<V, E, I, J>>();
+    _boundaryVertexMap = new HashMap<I, IVertex<V, E, I, J>>();
     _remoteVertexMap = new HashMap<I, IRemoteVertex<V, E, I, J, K>>();
+    _interiorEdges = new ArrayList<>();
+    _boundaryEdges = new ArrayList<>();
   }
 
   void addVertex(IVertex<V, E, I, J> v) {
     if (v instanceof IRemoteVertex)
       _remoteVertexMap.put(v.getVertexId(), (IRemoteVertex<V, E, I, J, K>) v);
     else
-      _localVertexMap.put(v.getVertexId(), v);
+      _interiorVertexMap.put(v.getVertexId(), v);
+  }
+
+  void addVertex(IVertex<V, E, I, J> v, boolean isBoundary) {
+    if (isBoundary)
+      _boundaryVertexMap.put(v.getVertexId(), v);
+    else
+      _interiorVertexMap.put(v.getVertexId(), v);
   }
 
   @Override
   public IVertex<V, E, I, J> getVertexById(I vertexID) {
-    return (_localVertexMap.get(vertexID) == null) ? _remoteVertexMap.get(vertexID) :
-            _localVertexMap.get(vertexID);
+    if(_interiorVertexMap.get(vertexID) != null)
+      return  _interiorVertexMap.get(vertexID);
+    else if(_boundaryVertexMap.get(vertexID) != null)
+      return  _boundaryVertexMap.get(vertexID);
+    return _remoteVertexMap.get(vertexID);
   }
 
   @Override
@@ -65,19 +82,20 @@ public class Subgraph<S extends Writable, V extends Writable, E extends Writable
 
   @Override
   public long getVertexCount() {
-    return _localVertexMap.size() + _remoteVertexMap.size();
+    return _interiorVertexMap.size() + _boundaryVertexMap.size() + _remoteVertexMap.size() ;
   }
 
   @Override
   public long getLocalVertexCount() {
-    return _localVertexMap.size();
+    return _interiorVertexMap.size() + _boundaryVertexMap.size();
   }
 
   @Override
   public Iterable<IVertex<V, E, I, J>> getVertices() {
     return new Iterable<IVertex<V, E, I, J>>() {
 
-      private Iterator<IVertex<V, E, I, J>> localVertexIterator = _localVertexMap.values().iterator();
+      private Iterator<IVertex<V, E, I, J>> interiorVertexIterator = _interiorVertexMap.values().iterator();
+      private Iterator<IVertex<V, E, I, J>> boundaryVertexIterator = _boundaryVertexMap.values().iterator();
       private Iterator<IRemoteVertex<V, E, I, J, K>> remoteVertexIterator = _remoteVertexMap.values().iterator();
 
       @Override
@@ -85,20 +103,16 @@ public class Subgraph<S extends Writable, V extends Writable, E extends Writable
         return new Iterator<IVertex<V, E, I, J>>() {
           @Override
           public boolean hasNext() {
-            if (localVertexIterator.hasNext()) {
-              return true;
-            } else {
-              return remoteVertexIterator.hasNext();
-            }
+            return interiorVertexIterator.hasNext() || boundaryVertexIterator.hasNext() || remoteVertexIterator.hasNext();
           }
 
           @Override
           public IVertex<V, E, I, J> next() {
-            if (localVertexIterator.hasNext()) {
-              return localVertexIterator.next();
-            } else {
-              return remoteVertexIterator.next();
-            }
+            if (interiorVertexIterator.hasNext())
+              return interiorVertexIterator.next();
+            else if (boundaryVertexIterator.hasNext())
+              return boundaryVertexIterator.next();
+            return remoteVertexIterator.next();
           }
 
           @Override
@@ -112,7 +126,33 @@ public class Subgraph<S extends Writable, V extends Writable, E extends Writable
 
   @Override
   public Iterable<IVertex<V, E, I, J>> getLocalVertices() {
-    return _localVertexMap.values();
+    return new Iterable<IVertex<V, E, I, J>>() {
+
+      private Iterator<IVertex<V, E, I, J>> interiorVertexIterator = _interiorVertexMap.values().iterator();
+      private Iterator<IVertex<V, E, I, J>> boundaryVertexIterator = _boundaryVertexMap.values().iterator();
+
+      @Override
+      public Iterator<IVertex<V, E, I, J>> iterator() {
+        return new Iterator<IVertex<V, E, I, J>>() {
+          @Override
+          public boolean hasNext() {
+            return interiorVertexIterator.hasNext() || boundaryVertexIterator.hasNext();
+          }
+
+          @Override
+          public IVertex<V, E, I, J> next() {
+            if (interiorVertexIterator.hasNext())
+              return interiorVertexIterator.next();
+            return boundaryVertexIterator.next();
+          }
+
+          @Override
+          public void remove() {
+
+          }
+        };
+      }
+    };
   }
 
   @Override
@@ -133,25 +173,46 @@ public class Subgraph<S extends Writable, V extends Writable, E extends Writable
 
   @Override
   public IEdge<E, I, J> getEdgeById(J edgeID) {
-    for (IVertex<V, E, I, J> vertex : _localVertexMap.values()) {
-      for (IEdge<E, I, J> vertexEdge : vertex.getOutEdges()) {
-        if (edgeID.equals(vertexEdge)) {
-          return vertexEdge;
-        }
-      }
-    }
+    for(IEdge<E, I, J> e: _interiorEdges)
+      if (edgeID.equals(e.getEdgeId()))
+        return e;
+    for(IEdge<E, I, J> e: _boundaryEdges)
+      if (edgeID.equals(e.getEdgeId()))
+        return e;
     return null;
   }
 
   @Override
   public Iterable<IEdge<E, I, J>> getOutEdges() {
-    List<IEdge<E, I, J>> edgeList = new ArrayList<IEdge<E, I, J>>();
-    for (IVertex<V, E, I, J> vertex : _localVertexMap.values()) {
-      for (IEdge<E, I, J> vertexEdge : vertex.getOutEdges()) {
-        edgeList.add(vertexEdge);
+    return new Iterable<IEdge<E, I, J>>() {
+
+
+      private Iterator<IEdge<E, I, J>> interiorIterator = _interiorEdges.iterator();
+      private Iterator<IEdge<E, I, J>> boundaryIterator = _boundaryEdges.iterator();
+
+      @Override
+      public Iterator<IEdge<E, I, J>> iterator() {
+        return new Iterator<IEdge<E, I, J>>() {
+          @Override
+          public boolean hasNext() {
+            return interiorIterator.hasNext() || boundaryIterator.hasNext();
+          }
+
+          @Override
+          public IEdge<E, I, J> next() {
+            if (interiorIterator.hasNext())
+              return interiorIterator.next();
+            return boundaryIterator.next();
+          }
+
+          @Override
+          public void remove() {
+
+          }
+        };
       }
-    }
-    return edgeList;
+    };
+
   }
 
   @Override
@@ -161,78 +222,37 @@ public class Subgraph<S extends Writable, V extends Writable, E extends Writable
 
   @Override
   public long getLocalEdgeCount() {
-    long localEdge = 0;
-    for (IVertex<V, E, I, J> vertex : _localVertexMap.values())
-      localEdge += vertex.getOutDegree();
-
-    return localEdge;
+    return _interiorEdges.size() + _boundaryEdges.size();
   }
 
   @Override
   public long getBoundaryEdgeCount() {
-    long boundaryEdgeCount=0;
-    for (IVertex<V, E, I, J> localVertex : _localVertexMap.values()) {
-      for(IEdge<E, I, J> temp : localVertex.getOutEdges()) {
-        if(!_localVertexMap.containsKey(temp.getSinkVertexId()))
-          boundaryEdgeCount++;
-      }
-    }
-    return boundaryEdgeCount;
+    return _boundaryEdges.size();
   }
 
   @Override
   public long getBoundaryVertexCount() {
-    long boundaryVertices=0;
-    for (IVertex<V, E, I, J> localVertex : _localVertexMap.values()) {
-      for(IEdge<E, I, J> temp : localVertex.getOutEdges()) {
-        if(!_localVertexMap.containsKey(temp.getSinkVertexId())) {
-          boundaryVertices++;
-          break;
-        }
-      }
-    }
-
-    return boundaryVertices;
+   return _boundaryVertexMap.size();
   }
 
 
   @Override
   public Iterable<IVertex<V,E,I,J>> getBoundaryVertices() {
-    List<IVertex<V, E, I, J>> boundaryVertices = new ArrayList<>();
-    for (IVertex<V, E, I, J> localVertex : _localVertexMap.values()) {
-      for(IEdge<E, I, J> temp : localVertex.getOutEdges()) {
-        if(!_localVertexMap.containsKey(temp.getSinkVertexId())) {
-          boundaryVertices.add(localVertex);
-          break;
-        }
-      }
-    }
-    return boundaryVertices;
+    return _boundaryVertexMap.values();
   }
 
 
   @Override
   public Iterable<IEdge<E, I, J>> getBoundaryEdges() {
-    List<IEdge<E,I,J>> boundaryEdge = new ArrayList<>();
-    for (IVertex<V, E, I, J> localVertex : _localVertexMap.values()) {
-      for(IEdge<E, I, J> temp : localVertex.getOutEdges()) {
-        if(!_localVertexMap.containsKey(temp.getSinkVertexId()))
-          boundaryEdge.add(temp);
-      }
-    }
-    return boundaryEdge;
+    return _boundaryEdges;
   }
 
-  @Override
-  public Iterable<IEdge<E, I, J>> getLocalOutEdges() {
-    List<IEdge<E,I,J>> localEdge = new ArrayList<>();
-    for (IVertex<V, E, I, J> vertex : _localVertexMap.values()) {
-      for(IEdge<E, I, J> temp : vertex.getOutEdges()) {
-        localEdge.add(temp);
-      }
-    }
-    return localEdge;
+  public void addInteriorEdge(IEdge<E, I, J> e){
+    _interiorEdges.add(e);
   }
 
+  public void addBoundaryEdge(IEdge<E, I, J> e){
+    _boundaryEdges.add(e);
+  }
 
 }
