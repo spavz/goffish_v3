@@ -223,13 +223,13 @@ public class GraphStatsAlpha extends
     System.out.println("Subgraph " + subgraph.getSubgraphId() + " has " + subgraph.getLocalVertexCount() + " local vertices");
     System.out.println("Subgraph " + subgraph.getSubgraphId() + " has " + (subgraph.getVertexCount() - subgraph.getLocalVertexCount()) + " remote vertices");
     System.out.println("Subgraph " + subgraph.getSubgraphId() + " has " + Iterables.size(subgraph.getOutEdges()) + " edges");
-    if (_neighbours.size() > 0) {
-      for (Long neighbour : _neighbours) {
-        System.out.print("Subgraph " + subgraph.getSubgraphId() + " has neighbour " + neighbour);
-      }
-    } else {
-      System.out.println("Subgraph " + subgraph.getSubgraphId() + " has no neighbours ");
-    }
+//    if (_neighbours.size() > 0) {
+//      for (Long neighbour : _neighbours) {
+//        System.out.print("Subgraph " + subgraph.getSubgraphId() + " has neighbour " + neighbour);
+//      }
+//    } else {
+//      System.out.println("Subgraph " + subgraph.getSubgraphId() + " has no neighbours ");
+//    }
     // System.out.print("\n*********Subgraph " + subgraph.getSubgraphId() + " has neighbours " + subgraph.getRemoteSubgraphsID());
 //    for (IVertex<LongWritable, LongWritable, LongWritable, LongWritable> v : getSubgraph().getLocalVertices())
 //      for (IEdge<LongWritable, LongWritable, LongWritable> e : ((IBiVertex<LongWritable, LongWritable, LongWritable, LongWritable>) v).getInEdges())
