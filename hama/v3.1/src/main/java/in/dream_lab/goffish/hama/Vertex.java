@@ -24,6 +24,8 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import in.dream_lab.goffish.api.ISubgraph;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Writable;
 
 import in.dream_lab.goffish.api.IEdge;
@@ -35,6 +37,9 @@ public class Vertex<V extends Writable, E extends Writable, I extends Writable, 
   private List<IEdge<E, I, J>> _adjList;
   private I vertexID;
   private V _value;
+  private ISubgraph<Writable, V, E, I, J, Writable> subgraph;
+  private long interiorOff,boundaryOff;
+  private int interiorDegree, boundaryDegree;
 
   Vertex() {
     _adjList = new ArrayList<IEdge<E, I, J>>();
@@ -45,10 +50,31 @@ public class Vertex<V extends Writable, E extends Writable, I extends Writable, 
     vertexID = ID;
   }
 
-  Vertex(I Id, Iterable<IEdge<E, I, J>> edges) {
+  Vertex(I Id, Iterable<IEdge<E, I, J>> edges,long interiorOff, long boundaryOff,int interiorDegree, int boundaryDegree) {
     this(Id);
     for (IEdge<E, I, J> e : edges)
       _adjList.add(e);
+    this.interiorDegree = interiorDegree;
+    this.boundaryDegree = boundaryDegree;
+    this.interiorOff = interiorOff;
+    this.boundaryOff = boundaryOff;
+  }
+
+  void setInteriorOff(long x) {
+    interiorOff = x;
+  }
+  void setBoundaryOff(long x) {
+    boundaryOff = x;
+  }
+  void setInteriorDegree(int x) {
+    interiorDegree = x;
+  }
+  void setBoundaryDegree(int x) {
+    boundaryDegree = x;
+  }
+
+  void setSubgraph(ISubgraph subgraph) {
+    this.subgraph = subgraph;
   }
 
   void setVertexID(I vertexID) {
@@ -67,7 +93,7 @@ public class Vertex<V extends Writable, E extends Writable, I extends Writable, 
 
   @Override
   public Iterable<IEdge<E, I, J>> getOutEdges() {
-    return _adjList;
+    return subgraph.getEdges(interiorOff,boundaryOff,interiorDegree+boundaryDegree);
   }
 
   @Override
@@ -80,9 +106,9 @@ public class Vertex<V extends Writable, E extends Writable, I extends Writable, 
     _value = value;
   }
 
-  @Override
+  //@Override
   public IEdge<E, I, J> getOutEdge(I vertexID) {
-    for (IEdge<E, I, J> e : _adjList)
+    for (IEdge<E, I, J> e : subgraph.getEdges(interiorOff,boundaryOff,interiorDegree+boundaryDegree))
       if (e.getSinkVertexId().equals(vertexID))
         return e;
     return null;
@@ -95,6 +121,20 @@ public class Vertex<V extends Writable, E extends Writable, I extends Writable, 
   }
 
   public long getOutDegree(){
-    return _adjList.size();
+    return interiorDegree + boundaryDegree;
   }
+
+  public long getInteriorOff() {
+    return interiorOff;
+  }
+  public long getBoundaryOff() {
+    return boundaryOff;
+  }
+  public int getInteriorDegree() {
+    return interiorDegree;
+  }
+  public int getBoundaryDegree() {
+    return boundaryDegree;
+  }
+
 }

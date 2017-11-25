@@ -215,34 +215,137 @@ public class Subgraph<S extends Writable, V extends Writable, E extends Writable
 
   }
 
-  @Override
+  public Iterable<IEdge<E, I, J>> getEdges(long iOff, long bOff, int degree) {
+    return new Iterable<IEdge<E, I, J>>() {
+
+
+      private Iterator<IEdge<E, I, J>> interiorIterator = _interiorEdges.listIterator((int) iOff);
+      private Iterator<IEdge<E, I, J>> boundaryIterator = _boundaryEdges.listIterator((int) bOff);
+
+      @Override
+      public Iterator<IEdge<E, I, J>> iterator() {
+        return new Iterator<IEdge<E, I, J>>() {
+          int d = degree;
+
+          @Override
+          public boolean hasNext() {
+            return d > 0 && (interiorIterator.hasNext()  || boundaryIterator.hasNext()) ;
+          }
+
+          @Override
+          public IEdge<E, I, J> next() {
+            d--;
+            if (interiorIterator.hasNext())
+              return interiorIterator.next();
+            return boundaryIterator.next();
+          }
+
+          @Override
+          public void remove() {
+
+          }
+        };
+      }
+    };
+
+  }
+
+  public Iterable<IEdge<E, I, J>> getInteriorEdges(long off, final int degree ) {
+    return new Iterable<IEdge<E, I, J>>() {
+
+
+      private Iterator<IEdge<E, I, J>> interiorIterator = _interiorEdges.listIterator((int) off);
+
+      @Override
+      public Iterator<IEdge<E, I, J>> iterator() {
+        return new Iterator<IEdge<E, I, J>>() {
+          int d = degree;
+          @Override
+          public boolean hasNext() {
+            return interiorIterator.hasNext() && d > 0;
+          }
+
+          @Override
+          public IEdge<E, I, J> next() {
+              d--;
+              return interiorIterator.next();
+          }
+
+          @Override
+          public void remove() {
+
+          }
+        };
+      }
+    };
+
+  }
+
+  public Iterable<IEdge<E, I, J>> getBoundaryEdges(long off, final int degree ) {
+    return new Iterable<IEdge<E, I, J>>() {
+
+
+      private Iterator<IEdge<E, I, J>> interiorIterator = _boundaryEdges.listIterator((int) off);
+
+      @Override
+      public Iterator<IEdge<E, I, J>> iterator() {
+        return new Iterator<IEdge<E, I, J>>() {
+          int d = degree;
+          @Override
+          public boolean hasNext() {
+            return interiorIterator.hasNext() && d > 0;
+          }
+
+          @Override
+          public IEdge<E, I, J> next() {
+            d--;
+            return interiorIterator.next();
+          }
+
+          @Override
+          public void remove() {
+
+          }
+        };
+      }
+    };
+
+  }
+
+  //@Override
   public long getRemoteVertexCount() {
     return _remoteVertexMap.size();
   }
 
-  @Override
+  //@Override
   public long getLocalEdgeCount() {
     return _interiorEdges.size() + _boundaryEdges.size();
   }
 
-  @Override
+
+  public long getInteriorEdgeCount() {
+    return _interiorEdges.size();
+  }
+
+
+  //Override
   public long getBoundaryEdgeCount() {
     return _boundaryEdges.size();
   }
 
-  @Override
+ // @Override
   public long getBoundaryVertexCount() {
    return _boundaryVertexMap.size();
   }
 
 
-  @Override
+  //@Override
   public Iterable<IVertex<V,E,I,J>> getBoundaryVertices() {
     return _boundaryVertexMap.values();
   }
 
 
-  @Override
+  //@Override
   public Iterable<IEdge<E, I, J>> getBoundaryEdges() {
     return _boundaryEdges;
   }
